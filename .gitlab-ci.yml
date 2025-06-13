@@ -1,0 +1,18 @@
+stages:
+  - build
+  - deploy
+
+build-fastapi:
+  stage: build
+  script:
+    - cd backend && python bootstrap.py
+  artifacts:
+    paths:
+      - backend/fastapi.zip
+
+deploy-terraform:
+  stage: deploy
+  script:
+    - cd terraform
+    - terraform init
+    - terraform apply -auto-approve
