@@ -14,6 +14,16 @@ resource "aws_iam_role" "lambda_exec" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_policy" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "vpc_policy" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
 resource "aws_lambda_function" "fastapi" {
   function_name    = "fastapiHandler"
   filename         = var.lambda_zip_path
@@ -21,4 +31,15 @@ resource "aws_lambda_function" "fastapi" {
   runtime          = "python3.11"
   role             = aws_iam_role.lambda_exec.arn
   source_code_hash = filebase64sha256(var.lambda_zip_path)
+  
+  vpc_config {
+    subnet_ids         = var.subnet_ids
+    security_group_ids = var.security_group_ids
+  }
+
+  environment {
+    variables = {
+      ENVIRONMENT = "production"
+    }
+  }
 }

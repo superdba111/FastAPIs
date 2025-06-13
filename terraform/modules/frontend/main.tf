@@ -55,7 +55,29 @@ resource "aws_cloudfront_distribution" "cdn" {
     viewer_protocol_policy = "redirect-to-https"
   }
 
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+}
+
+resource "null_resource" "deploy_frontend" {
+  triggers = {
+    always_run = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      cd ../frontend && \
+      npm run build && \
+      aws s3 sync dist/ s3://${var.bucket_name} --delete
+    EOT
+  }
+
+  depends_on = [aws_s3_bucket.frontend]
 }

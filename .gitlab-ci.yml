@@ -2,6 +2,9 @@ stages:
   - build
   - deploy
 
+variables:
+  VUE_APP_API_URL: "$API_GATEWAY_URL"  # This will be replaced with the actual URL
+
 build-fastapi:
   stage: build
   script:
@@ -10,9 +13,23 @@ build-fastapi:
     paths:
       - backend/fastapi.zip
 
+build-frontend:
+  stage: build
+  script:
+    - cd frontend
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist
+
 deploy-terraform:
   stage: deploy
   script:
     - cd terraform
     - terraform init
     - terraform apply -auto-approve
+    - echo "API_GATEWAY_URL=$(terraform output -raw api_url)" > api_url.env
+  artifacts:
+    reports:
+      dotenv: api_url.env
