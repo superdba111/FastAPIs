@@ -7,3 +7,11 @@ package-lock.json
 __pycache__/
 *.pyc
 *.zip
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+tfplan
+terraform.tfstate*

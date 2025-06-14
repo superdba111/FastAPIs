@@ -29,7 +29,13 @@ deploy-terraform:
     - cd terraform
     - terraform init
     - terraform apply -auto-approve
-    - echo "API_GATEWAY_URL=$(terraform output -raw api_url)" > api_url.env
+    - |
+      cat > api_url.env <<EOF
+      API_GATEWAY_URL=$(terraform output -raw api_url)
+      FRONTEND_URL=$(terraform output -raw frontend_url)
+      EOF
   artifacts:
     reports:
       dotenv: api_url.env
+    paths:
+      - terraform/.terraform.lock.hcl

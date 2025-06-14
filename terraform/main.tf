@@ -19,10 +19,3 @@ module "frontend" {
   bucket_name = var.bucket_name
 }
 
-output "api_url" {
-  value = module.apigateway.api_gateway_url
-}
-
-output "frontend_url" {
-  value = module.frontend.cloudfront_url
-}
