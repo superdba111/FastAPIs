@@ -30,12 +30,14 @@ deploy-terraform:
     - terraform init
     - terraform apply -auto-approve
     - |
-      cat > api_url.env <<EOF
+      cat > ../api_url.env <<EOF
       API_GATEWAY_URL=$(terraform output -raw api_url)
       FRONTEND_URL=$(terraform output -raw frontend_url)
+      LAMBDA_ARN=$(terraform output -raw lambda_function_arn)
       EOF
+    - cat ../api_url.env  # Verify file contents
   artifacts:
     reports:
-      dotenv: api_url.env
+      dotenv: ../api_url.env
     paths:
       - terraform/.terraform.lock.hcl
