@@ -1,49 +1,67 @@
 <template>
-  <div class="chat-container">
-    <h1>Vue Chat</h1>
-    <div class="chat-input">
-      <input 
-        v-model="query" 
-        placeholder="Ask something..." 
-        @keyup.enter="ask"
-      />
-      <button @click="ask">Send</button>
+  <div>
+    <h1>Lambda API Demo</h1>
+    
+    <!-- Chat Section -->
+    <div>
+      <h2>Chat with AI</h2>
+      <input v-model="chatInput" @keyup.enter="callChatAPI" />
+      <button @click="callChatAPI">Send</button>
+      <p v-if="chatResponse">{{ chatResponse }}</p>
     </div>
-    <div class="chat-response" v-if="response">
-      <p><strong>Response:</strong> {{ response }}</p>
+
+    <!-- Calculator Section -->
+    <div>
+      <h2>Calculator</h2>
+      <input v-model.number="num1" type="number" />
+      <input v-model.number="num2" type="number" />
+      <button @click="callCalcAPI">Add Numbers</button>
+      <p v-if="calcResult">Result: {{ calcResult }}</p>
     </div>
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
+
+    <!-- Error Display -->
+    <p v-if="error" style="color:red">{{ error }}</p>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
-      query: '',
-      response: '',
-      error: ''
+      chatInput: '',
+      chatResponse: '',
+      num1: 2,
+      num2: 3,
+      calcResult: null,
+      error: null
     }
   },
   methods: {
-    async ask() {
-      if (!this.query.trim()) {
-        this.error = 'Please enter a question'
-        return
-      }
-
-      this.error = ''
-      this.response = 'Thinking...'
-
+    async callChatAPI() {
+      this.error = null;
       try {
-        const response = await this.$axios.get(`/chat?q=${encodeURIComponent(this.query)}`)
-        this.response = response.data.response
+        const response = await axios.get('http://localhost:8000/chat', {
+          params: { q: this.chatInput }
+        });
+        this.chatResponse = response.data.response;
       } catch (err) {
-        console.error('API error:', err)
-        this.error = 'Failed to get response from the server'
-        this.response = ''
+        this.error = `Chat Error: ${err.message}`;
+      }
+    },
+    async callCalcAPI() {
+      this.error = null;
+      try {
+        const response = await axios.get('http://localhost:8000/calculate', {
+          params: { 
+            a: this.num1,
+            b: this.num2
+          }
+        });
+        this.calcResult = response.data.result;
+      } catch (err) {
+        this.error = `Calc Error: ${err.message}`;
       }
     }
   }
@@ -51,54 +69,48 @@ export default {
 </script>
 
 <style scoped>
-.chat-container {
+.app-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2rem;
   font-family: Arial, sans-serif;
 }
 
-h1 {
-  color: #2c3e50;
-  text-align: center;
+.api-section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
 }
 
-.chat-input {
-  display: flex;
-  margin: 20px 0;
+h2 {
+  color: #2c3e50;
 }
 
 input {
-  flex: 1;
-  padding: 10px;
+  padding: 0.5rem;
+  margin-right: 0.5rem;
   border: 1px solid #ddd;
-  border-radius: 4px 0 0 4px;
-  font-size: 16px;
+  border-radius: 4px;
 }
 
 button {
-  padding: 10px 20px;
+  padding: 0.5rem 1rem;
   background-color: #42b983;
   color: white;
   border: none;
-  border-radius: 0 4px 4px 0;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
 }
 
 button:hover {
   background-color: #3aa876;
 }
 
-.chat-response {
-  margin-top: 20px;
-  padding: 15px;
+.response {
+  margin-top: 1rem;
+  padding: 0.5rem;
   background-color: #f5f5f5;
   border-radius: 4px;
-}
-
-.error-message {
-  color: #e74c3c;
-  margin-top: 10px;
 }
 </style>
