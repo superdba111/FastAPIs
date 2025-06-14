@@ -17,7 +17,7 @@ build-frontend:
   stage: build
   script:
     - cd frontend
-    - npm install
+    - ~/.nvm/versions/node/v20.17.0/bin/npm install
     - npm run build
   artifacts:
     paths:
