@@ -1,6 +1,7 @@
 # -----------------------------
 # terraform/main.tf (ROOT MODULE)
 # -----------------------------
+
 module "backend" {
   source              = "./modules/backend"
   lambda_zip_path     = "../backend/fastapi.zip"
@@ -17,5 +18,6 @@ module "apigateway" {
 module "frontend" {
   source      = "./modules/frontend"
   bucket_name = var.bucket_name
+  account_id  = data.aws_caller_identity.current.account_id
 }
 
