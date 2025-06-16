@@ -1,14 +1,26 @@
 stages:
-  - provision # NEW STAGE
+  - provision
   - build
   - deploy
 
 variables:
-  PROJECT_ROOT: "${CI_PROJECT_DIR}" # GitLab predefined variable for project directory
+  PROJECT_ROOT: "${CI_PROJECT_DIR}"
 
-# NEW JOB: deploy-terraform now runs in the 'provision' stage
-deploy-terraform:
+# Moved to 'provision' stage so fastapi.zip is available for terraform
+build-fastapi:
   stage: provision # CHANGED STAGE
+  script:
+    - cd "${PROJECT_ROOT}/backend" && python bootstrap.py
+  artifacts:
+    paths:
+      - "${PROJECT_ROOT}/backend/fastapi.zip" # This artifact will now be available to subsequent jobs, including deploy-terraform
+
+# deploy-terraform now needs artifacts from build-fastapi
+deploy-terraform:
+  stage: provision
+  needs:
+    - job: build-fastapi # ADDED: Needs fastapi.zip to exist
+      artifacts: true
   script:
     - echo "Current directory is ${PROJECT_ROOT}"
     - cd "${PROJECT_ROOT}/terraform"
@@ -28,26 +40,16 @@ deploy-terraform:
     reports:
       dotenv: "${PROJECT_ROOT}/output.env"
 
-build-fastapi:
-  stage: build
-  script:
-    - cd "${PROJECT_ROOT}/backend" && python bootstrap.py
-  artifacts:
-    paths:
-      - "${PROJECT_ROOT}/backend/fastapi.zip"
-
+# build-frontend still needs deploy-terraform for VUE_APP_API_URL
 build-frontend:
   stage: build
   image: node:20.17.0
-  # This job now correctly depends on 'deploy-terraform' which is in an earlier stage ('provision').
   needs:
     - job: deploy-terraform
       artifacts: true
   script:
     - cd "${PROJECT_ROOT}/frontend"
     - npm install
-    # VUE_APP_API_URL will be available as an environment variable here,
-    # overriding any .env file in the frontend directory during the build.
     - npm run build
   artifacts:
     paths:
@@ -58,7 +60,7 @@ deploy-frontend:
   needs:
     - job: build-frontend
       artifacts: true
-    - job: deploy-terraform # Keep this need if deploy-frontend also uses terraform outputs directly (e.g., S3_BUCKET_NAME, CLOUDFRONT_ID)
+    - job: deploy-terraform
       artifacts: true
   script:
     - echo "Deploying to bucket is ${S3_BUCKET_NAME}"
