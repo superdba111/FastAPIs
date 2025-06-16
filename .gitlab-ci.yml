@@ -23,6 +23,16 @@ build-frontend:
     paths:
       - frontend/dist
 
+deploy-frontend:
+  stage: deploy
+  script:
+    - cd frontend
+    - npm run build
+    - aws s3 sync dist/ s3://nws-vue-frontend-bucket --delete
+    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+  variables:
+    CLOUDFRONT_ID: "E2F30NB03WULVQ"  # From your outputs
+
 deploy-terraform:
   stage: deploy
   script:
