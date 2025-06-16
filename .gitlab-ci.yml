@@ -3,8 +3,9 @@ stages:
   - deploy
 
 variables:
-  VUE_APP_API_URL: "$API_GATEWAY_URL"
-  PROJECT_ROOT: "${CI_PROJECT_DIR}"  # GitLab predefined variable for project directory
+  # REMOVED: VUE_APP_API_URL: "$API_GATEWAY_URL"
+  # This variable will now be set dynamically by the 'deploy-terraform' job via dotenv artifacts.
+  PROJECT_ROOT: "${CI_PROJECT_DIR}" # GitLab predefined variable for project directory
 
 build-fastapi:
   stage: build
@@ -17,9 +18,16 @@ build-fastapi:
 build-frontend:
   stage: build
   image: node:20.17.0
+  # ADDED: This job now explicitly depends on 'deploy-terraform'
+  # to ensure its dotenv artifacts (including VUE_APP_API_URL) are available.
+  needs:
+    - job: deploy-terraform
+      artifacts: true
   script:
     - cd "${PROJECT_ROOT}/frontend"
     - npm install
+    # VUE_APP_API_URL will be available as an environment variable here,
+    # overriding any .env file in the frontend directory during the build.
     - npm run build
   artifacts:
     paths:
@@ -38,6 +46,7 @@ deploy-terraform:
       FRONTEND_URL=$(terraform output -raw frontend_url)
       CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id)
       S3_BUCKET_NAME=$(terraform output -raw s3_bucket_name)
+      VUE_APP_API_URL=$(terraform output -raw api_url) # ADDED: This line makes it available for the frontend build
       EOF
     - echo "Verifying output.env:"
     - cat "${PROJECT_ROOT}/output.env"

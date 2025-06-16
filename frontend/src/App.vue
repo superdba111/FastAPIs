@@ -27,6 +27,11 @@
 <script>
 import axios from 'axios';
 
+// This line reads the environment variable during compilation/runtime
+// For local dev: process.env.VUE_APP_API_URL will be "http://localhost:8000"
+// For AWS dev: process.env.VUE_APP_API_URL will be "https://your-api-gateway-url.com" (overridden by CI/CD)
+const API_BASE_URL = process.env.VUE_APP_API_URL;
+
 export default {
   data() {
     return {
@@ -42,7 +47,7 @@ export default {
     async callChatAPI() {
       this.error = null;
       try {
-        const response = await axios.get('http://localhost:8000/chat', {
+        const response = await axios.get(`${API_BASE_URL}/chat`, {
           params: { q: this.chatInput }
         });
         this.chatResponse = response.data.response;
@@ -53,7 +58,7 @@ export default {
     async callCalcAPI() {
       this.error = null;
       try {
-        const response = await axios.get('http://localhost:8000/calculate', {
+        const response = await axios.get(`${API_BASE_URL}/calculate`, {
           params: { 
             a: this.num1,
             b: this.num2
