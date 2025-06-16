@@ -45,11 +45,10 @@ deploy-frontend:
   stage: deploy
   needs:
     - job: build-frontend
-      artifacts: true # Assuming you need artifacts from build-frontend too (like frontend/dist)
+      artifacts: true # This makes sure 'frontend/dist' is downloaded
     - job: deploy-terraform
-      artifacts: true # Explicitly request artifacts from deploy-terraform
+      artifacts: true # THIS IS THE CRUCIAL PART: Ensures dotenv from deploy-terraform is loaded
   script:
-    - echo "Deploying to bucket is "
-    - echo $S3_BUCKET_NMAE
+    - echo "Deploying to bucket is $S3_BUCKET_NAME" # Fix your debug echo here too
     - aws s3 sync frontend/dist/ s3://$S3_BUCKET_NAME --delete
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
