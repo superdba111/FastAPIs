@@ -49,6 +49,7 @@ deploy-frontend:
     - job: deploy-terraform
       artifacts: true # Explicitly request artifacts from deploy-terraform
   script:
-    - echo "Deploying to bucket is $S3_BUCKET_NAME"
+    - echo "Deploying to bucket is "
+    - echo $S3_BUCKET_NMAE
     - aws s3 sync frontend/dist/ s3://$S3_BUCKET_NAME --delete
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
