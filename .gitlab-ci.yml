@@ -3,7 +3,8 @@ stages:
   - deploy
 
 variables:
-  VUE_APP_API_URL: "$API_GATEWAY_URL"  # This will be replaced with the actual URL
+  # This variable will be populated by the 'deploy-terraform' job artifact
+  VUE_APP_API_URL: "$API_GATEWAY_URL"
 
 build-fastapi:
   stage: build
@@ -15,23 +16,15 @@ build-fastapi:
 
 build-frontend:
   stage: build
+  # It's a best practice to use a Docker image with the specific Node version you need
+  image: node:20.17.0
   script:
     - cd frontend
-    - ~/.nvm/versions/node/v20.17.0/bin/npm install
+    - npm install
     - npm run build
   artifacts:
     paths:
       - frontend/dist
-
-deploy-frontend:
-  stage: deploy
-  script:
-    - cd frontend
-    - npm run build
-    - aws s3 sync dist/ s3://nws-vue-frontend-bucket --delete
-    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
-  variables:
-    CLOUDFRONT_ID: "E2F30NB03WULVQ"  # From your outputs
 
 deploy-terraform:
   stage: deploy
@@ -39,17 +32,29 @@ deploy-terraform:
     - cd terraform
     - terraform init
     - terraform apply -auto-approve
-    # Force CloudFront cache invalidation
+    # Generate an artifact with the outputs from Terraform.
+    # This artifact can be used by any subsequent job in the pipeline.
     - |
-      DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
-      aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
-    # Generate environment file
-    - |
-      cat > ../api_url.env <<EOF
+      cat > ../output.env <<EOF
       API_GATEWAY_URL=$(terraform output -raw api_url)
       FRONTEND_URL=$(terraform output -raw frontend_url)
       CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id)
+      S3_BUCKET_NAME=$(terraform output -raw s3_bucket_name)
       EOF
   artifacts:
     reports:
-      dotenv: ../api_url.env
+      dotenv: ../output.env
+
+deploy-frontend:
+  stage: deploy
+  # This job needs the artifacts from both build-frontend (to get the 'dist' folder)
+  # and deploy-terraform (to get the environment variables like CLOUDFRONT_ID).
+  dependencies:
+    - build-frontend
+    - deploy-terraform
+  script:
+    # No need to cd, build, or install. We work from the project root.
+    # The 'dist' folder is available at 'frontend/dist' thanks to the artifact download.
+    # The $S3_BUCKET_NAME and $CLOUDFRONT_ID variables are available from the terraform artifact.
+    - aws s3 sync frontend/dist/ s3://$S3_BUCKET_NAME --delete
+    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
