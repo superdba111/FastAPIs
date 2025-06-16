@@ -22,3 +22,4 @@ output "cloudfront_distribution_id" {
 output "s3_bucket_name" {
   description = "Name of the S3 bucket for the frontend static files"
   value       = var.bucket_name 
+}
