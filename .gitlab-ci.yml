@@ -29,15 +29,17 @@ deploy-terraform:
     - cd terraform
     - terraform init
     - terraform apply -auto-approve
+    # Force CloudFront cache invalidation
+    - |
+      DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
+      aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
+    # Generate environment file
     - |
       cat > ../api_url.env <<EOF
       API_GATEWAY_URL=$(terraform output -raw api_url)
       FRONTEND_URL=$(terraform output -raw frontend_url)
-      LAMBDA_ARN=$(terraform output -raw lambda_function_arn)
+      CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id)
       EOF
-    - cat ../api_url.env  # Verify file contents
   artifacts:
     reports:
       dotenv: ../api_url.env
-    paths:
-      - terraform/.terraform.lock.hcl

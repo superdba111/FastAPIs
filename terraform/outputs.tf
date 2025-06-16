@@ -13,3 +13,8 @@ output "lambda_function_arn" {
   description = "ARN of the Lambda function"
   value       = module.backend.lambda_function_arn
 }
+
+output "cloudfront_distribution_id" {
+  description = "ID of the CloudFront distribution"
+  value       = module.frontend.cloudfront_distribution_id
+}
