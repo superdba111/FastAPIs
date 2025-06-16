@@ -4,51 +4,55 @@ stages:
 
 variables:
   VUE_APP_API_URL: "$API_GATEWAY_URL"
+  PROJECT_ROOT: "${CI_PROJECT_DIR}"  # GitLab predefined variable for project directory
 
 build-fastapi:
   stage: build
   script:
-    - cd backend && python bootstrap.py
+    - cd "${PROJECT_ROOT}/backend" && python bootstrap.py
   artifacts:
     paths:
-      - backend/fastapi.zip
+      - "${PROJECT_ROOT}/backend/fastapi.zip"
 
 build-frontend:
   stage: build
   image: node:20.17.0
   script:
-    - cd frontend
+    - cd "${PROJECT_ROOT}/frontend"
     - npm install
     - npm run build
   artifacts:
     paths:
-      - frontend/dist
+      - "${PROJECT_ROOT}/frontend/dist"
 
 deploy-terraform:
   stage: deploy
   script:
-    - cd terraform
+    - echo "Current directory is ${PROJECT_ROOT}"
+    - cd "${PROJECT_ROOT}/terraform"
     - terraform init
     - terraform apply -auto-approve
     - |
-      cat > ../output.env <<EOF
+      cat > "${PROJECT_ROOT}/output.env" <<EOF
       API_GATEWAY_URL=$(terraform output -raw api_url)
       FRONTEND_URL=$(terraform output -raw frontend_url)
       CLOUDFRONT_ID=$(terraform output -raw cloudfront_distribution_id)
       S3_BUCKET_NAME=$(terraform output -raw s3_bucket_name)
       EOF
+    - echo "Verifying output.env:"
+    - cat "${PROJECT_ROOT}/output.env"
   artifacts:
     reports:
-      dotenv: ../output.env
+      dotenv: "${PROJECT_ROOT}/output.env"
 
 deploy-frontend:
   stage: deploy
   needs:
     - job: build-frontend
-      artifacts: true # This makes sure 'frontend/dist' is downloaded
+      artifacts: true
     - job: deploy-terraform
-      artifacts: true # THIS IS THE CRUCIAL PART: Ensures dotenv from deploy-terraform is loaded
+      artifacts: true
   script:
-    - echo "Deploying to bucket is $S3_BUCKET_NAME" # Fix your debug echo here too
-    - aws s3 sync frontend/dist/ s3://$S3_BUCKET_NAME --delete
-    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+    - echo "Deploying to bucket is ${S3_BUCKET_NAME}"
+    - aws s3 sync "${PROJECT_ROOT}/frontend/dist/" "s3://${S3_BUCKET_NAME}" --delete
+    - aws cloudfront create-invalidation --distribution-id "${CLOUDFRONT_ID}" --paths "/*"
