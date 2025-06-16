@@ -45,8 +45,10 @@ deploy-frontend:
   stage: deploy
   needs:
     - build-frontend
-    - deploy-terraform
+    - job: deploy-terraform # Specify the job name
+      artifacts: true       # This tells GitLab to download all artifacts, including dotenv report
+                            # Alternatively, for more precision: artifacts: [dotenv] if you only need dotenv
   script:
-    - echo "Deploying to bucket $S3_BUCKET_NAME"
+    - echo "Deploying to bucket-- $S3_BUCKET_NAME"
     - aws s3 sync frontend/dist/ s3://$S3_BUCKET_NAME --delete
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
