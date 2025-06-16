@@ -30,7 +30,7 @@ deploy-terraform:
     - cd terraform
     - terraform init
     - terraform apply -auto-approve
-    - >-
+    - |
       cat > ../output.env <<EOF
       API_GATEWAY_URL=$(terraform output -raw api_url)
       FRONTEND_URL=$(terraform output -raw frontend_url)
