@@ -1,26 +1,30 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 
 app = FastAPI()
 
-# Add CORS middleware
+origins = [
+    "https://d3f4nrxvf43e8.cloudfront.net",
+    # Add your local development origin as well
+    "http://localhost:8080", # Or whatever port your Vue dev server runs on
+    "http://localhost:8000" # If your frontend sometimes runs on 8000 and connects to backend on 8000
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (for development only)
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"], # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"], # Allows all headers
 )
 
-# Your existing endpoints...
-@app.get("/")
-def read_root():
-    return {"message": "Hello from FastAPI!"}
-
 @app.get("/chat")
-def chat(q: str):
-    return {"response": f"Echo: {q}"}
+async def chat(q: str):
+    # Your chat logic
+    return {"response": f"You said: {q}"}
 
 @app.get("/calculate")
-def calculate(a: int, b: int):
+async def calculate(a: int, b: int):
+    # Your calculation logic
     return {"result": a + b}
