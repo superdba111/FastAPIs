@@ -17,6 +17,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"], # Allows all methods (GET, POST, etc.)
     allow_headers=["*"], # Allows all headers
+    expose_headers=["*"]
 )
 
 @app.get("/chat")
@@ -28,3 +29,6 @@ async def chat(q: str):
 async def calculate(a: int, b: int):
     # Your calculation logic
     return {"result": a + b}
+
+# Lambda handler
+handler = Mangum(app)

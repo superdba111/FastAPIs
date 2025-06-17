@@ -7,6 +7,7 @@ resource "aws_apigatewayv2_api" "http_api" {
     allow_origins = ["https://d3f4nrxvf43e8.cloudfront.net"]
     allow_methods = ["GET", "POST", "OPTIONS"]
     allow_headers = ["*"]
+    expose_headers = ["*"]
     max_age       = 300
   }
 }
