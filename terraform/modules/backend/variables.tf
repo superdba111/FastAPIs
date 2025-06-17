@@ -12,3 +12,8 @@ variable "security_group_ids" {
   type        = list(string)
   description = "List of security group IDs for Lambda VPC config"
 }
+
+variable "api_gateway_execution_arn" {
+  description = "The execution ARN of the API Gateway"
+  type        = string
+}

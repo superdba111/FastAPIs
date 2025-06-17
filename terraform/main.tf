@@ -7,6 +7,7 @@ module "backend" {
   lambda_zip_path     = "../backend/fastapi.zip"
   subnet_ids          = var.subnet_ids
   security_group_ids  = var.security_group_ids
+  api_gateway_execution_arn = module.apigateway.api_execution_arn
 }
 
 module "apigateway" {

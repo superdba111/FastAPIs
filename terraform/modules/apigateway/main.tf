@@ -39,3 +39,9 @@ resource "aws_lambda_permission" "apigw_lambda" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
+
+resource "aws_api_gateway_rest_api" "this" {
+  name        = "fastapi-gateway"
+  description = "API Gateway for FastAPI application"
+  # ... other configuration ...
+}
