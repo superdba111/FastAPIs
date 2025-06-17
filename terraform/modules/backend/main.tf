@@ -45,7 +45,7 @@ resource "aws_lambda_function" "fastapi" {
 }
 
 resource "aws_lambda_permission" "apigw" {
-  statement_id  = "AllowAPIGatewayInvoke-${md5(module.apigateway.api_execution_arn)}"
+  statement_id  = "AllowAPIGatewayInvoke-${md5(var.api_gateway_execution_arn)}"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.fastapi.function_name
   principal     = "apigateway.amazonaws.com"
