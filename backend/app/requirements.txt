@@ -2,5 +2,5 @@ fastapi
 uvicorn
 mangum
 sqlalchemy
-psycopg2-binary
+pg8000
 pydantic[email]

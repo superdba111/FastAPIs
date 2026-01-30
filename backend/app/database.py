@@ -37,7 +37,8 @@ def get_db_url():
 
     # Construct the PostgreSQL URL
     # Format: postgresql://user:password@host:port/dbname
-    return f"postgresql://{creds['username']}:{creds['password']}@{creds['host']}:{creds.get('port', 5432)}/{creds['dbname']}"
+    # return f"postgresql://{creds['username']}:{creds['password']}@{creds['host']}:{creds.get('port', 5432)}/{creds['dbname']}"
+    return f"postgresql+pg8000://{creds['username']}:{creds['password']}@{creds['host']}:{creds.get('port', 5432)}/{creds['dbname']}"
 
 # 2. Create Engine using the dynamic URL
 SQLALCHEMY_DATABASE_URL = get_db_url()
