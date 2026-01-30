@@ -4,4 +4,3 @@ mangum
 sqlalchemy
 psycopg2-binary
 pydantic[email]
-boto3
