@@ -148,6 +148,9 @@ export default {
         this.users = res.data;
       } catch (e) { alert("Failed to load users"); }
     },
+    openCreateModal() {
+      this.showCreate = true;
+    },
     async createUser() {
       try {
         await axios.post(`${API_URL}/users/`, this.form);
