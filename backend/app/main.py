@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 from mangum import Mangum
-from . import models, schemas, database
+# from . import models, schemas, database
+from app import models, schemas, database
 
 # Create tables (Safe to run; skips if tables exist)
 models.Base.metadata.create_all(bind=database.engine)
