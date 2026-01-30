@@ -14,6 +14,26 @@ resource "aws_iam_role" "lambda_exec" {
   })
 }
 
+resource "aws_iam_role_policy" "secrets_access" {
+  name = "allow_secrets_manager_read"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        # Best Practice: Restrict to the specific secret ARN if possible
+        # For now, "*" covers all secrets in the region
+        Resource = "*" 
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "lambda_policy" {
   role       = aws_iam_role.lambda_exec.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
@@ -40,6 +60,9 @@ resource "aws_lambda_function" "fastapi" {
   environment {
     variables = {
       ENVIRONMENT = "production"
+      # We now pass the SECRET NAME, not the full URL
+      SECRET_NAME = "nws-dl-sbx-web-secrets"
+      REGION_NAME = "us-east-1"
     }
   }
 }
