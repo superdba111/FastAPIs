@@ -5,7 +5,7 @@ resource "aws_apigatewayv2_api" "http_api" {
   # Correct CORS configuration (built-in to aws_apigatewayv2_api)
   cors_configuration {
     allow_origins = ["https://d3f4nrxvf43e8.cloudfront.net"]
-    allow_methods = ["GET", "POST", "OPTIONS"]
+    allow_methods = ["GET", "POST", "OPTIONS", "PATCH", "DELETE"]
     allow_headers = ["*"]
     expose_headers = ["*"]
     max_age       = 300
